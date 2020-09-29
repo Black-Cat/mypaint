@@ -918,6 +918,7 @@ def get_ext_modules():
     ]
     extra_link_args = []
 
+    extra_compile_args.append('-DTRACY_ENABLE')
     if sys.platform == "darwin":
         extra_compile_args.append('-D_DARWIN_C_SOURCE')
     elif sys.platform == "win32":
@@ -948,6 +949,7 @@ def get_ext_modules():
         packages=initial_deps,
         include_dirs=[
             numpy.get_include(),
+            'lib/tracy/'
         ],
         extra_link_args=extra_link_args,
         extra_compile_args=extra_compile_args,
@@ -969,6 +971,7 @@ def get_ext_modules():
     mypaintlib = Extension(
         'lib._mypaintlib',
         [
+            'lib/tracy/TracyClient.cpp',
             'lib/mypaintlib.i',
             'lib/gdkpixbuf2numpy.cpp',
             'lib/pixops.cpp',

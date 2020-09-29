@@ -36,11 +36,13 @@
 #define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>
 
+#include "tracy/Tracy.hpp"
 
 static void
 png_write_error_callback (png_structp png_save_ptr,
                           png_const_charp error_msg)
 {
+    ZoneScoped;
     // we don't trust libpng to call the error callback only once, so
     // check for already-set error
     if (!PyErr_Occurred()) {
@@ -80,6 +82,7 @@ struct ProgressivePNGWriter::State
     bool check_valid();
 
     void cleanup() {
+        ZoneScoped;
         if (png_ptr || info_ptr) {
             png_destroy_write_struct(&png_ptr, &info_ptr);
             assert(png_ptr == NULL);
@@ -102,6 +105,7 @@ struct ProgressivePNGWriter::State
 bool
 ProgressivePNGWriter::State::check_valid()
 {
+    ZoneScoped;
     bool valid = true;
     if (! info_ptr) {
         PyErr_SetString(
@@ -134,6 +138,7 @@ ProgressivePNGWriter::ProgressivePNGWriter(PyObject *file,
                                            const bool save_srgb_chunks)
     : state(new ProgressivePNGWriter::State())
 {
+    ZoneScoped;
     state->width = w;
     state->height = h;
     png_structp png_ptr = NULL;
@@ -246,6 +251,7 @@ ProgressivePNGWriter::ProgressivePNGWriter(PyObject *file,
 PyObject *
 ProgressivePNGWriter::write(PyObject *arr_obj)
 {
+    ZoneScoped;
     PyArrayObject* arr = (PyArrayObject*)arr_obj;
     int rowcount = 0;
     int rowstride = 0;
@@ -336,6 +342,7 @@ ProgressivePNGWriter::write(PyObject *arr_obj)
 PyObject *
 ProgressivePNGWriter::close()
 {
+    ZoneScoped;
     if (! state) {
         PyErr_SetString(
             PyExc_RuntimeError,
@@ -368,6 +375,7 @@ ProgressivePNGWriter::close()
 
 ProgressivePNGWriter::~ProgressivePNGWriter()
 {
+    ZoneScoped;
     delete state;
 }
 
@@ -376,6 +384,7 @@ static void
 png_read_error_callback (png_structp png_read_ptr,
                          png_const_charp error_msg)
 {
+    ZoneScoped;
     // we don't trust libpng to call the error callback only once, so
     // check for already-set error
     if (!PyErr_Occurred()) {
@@ -400,6 +409,7 @@ static void
 log_lcms2_error (cmsContext context_id, cmsUInt32Number err_code,
                  const char *err_text)
 {
+    ZoneScoped;
     printf("lcms: ERROR: %d %s\n", err_code, err_text);
 }
 
@@ -427,6 +437,7 @@ load_png_fast_progressive (char *filename,
                            PyObject *get_buffer_callback,
                            bool convert_to_srgb)
 {
+    ZoneScoped;
     // Note: we are not using the method that libpng calls "Reading PNG
     // files progressively". That method would involve feeding the data
     // into libpng piece by piece, which is not necessary if we can give
